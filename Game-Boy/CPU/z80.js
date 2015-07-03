@@ -40,3 +40,30 @@ Z80 = {
         Z80._r.m = 1; Z80._r.t = 4;                // 1 M-time taken
     }
 };
+
+
+    // Push registers B and C to the stack (PUSH BC)
+    PUSHBC: function() {
+        Z80._r.sp--;                               // Drop through the stack
+	MMU.wb(Z80._r.sp, Z80._r.b);               // Write B
+	Z80._r.sp--;                               // Drop through the stack
+	MMU.wb(Z80._r.sp, Z80._r.c);               // Write C
+	Z80._r.m = 3; Z80._r.t = 12;               // 3 M-times taken
+    },
+
+    // Pop registers H and L off the stack (POP HL)
+    POPHL: function() {
+        Z80._r.l = MMU.rb(Z80._r.sp);              // Read L
+	Z80._r.sp++;                               // Move back up the stack
+	Z80._r.h = MMU.rb(Z80._r.sp);              // Read H
+	Z80._r.sp++;                               // Move back up the stack
+	Z80._r.m = 3; Z80._r.t = 12;               // 3 M-times taken
+    }
+
+    // Read a byte from absolute location into A (LD A, addr)
+    LDAmm: function() {
+        var addr = MMU.rw(Z80._r.pc);              // Get address from instr
+	Z80._r.pc += 2;                            // Advance PC
+	Z80._r.a = MMU.rb(addr);                   // Read from address
+	Z80._r.m = 4; Z80._r.t=16;                 // 4 M-times taken
+    }
