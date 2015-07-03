@@ -1,4 +1,4 @@
-Z80 = {
+KZ80 = {
     // Time clock: The Z80 holds two types of clock (m and t)
     _clock: {m:0, t:0},
 
@@ -67,3 +67,28 @@ Z80 = {
 	Z80._r.a = MMU.rb(addr);                   // Read from address
 	Z80._r.m = 4; Z80._r.t=16;                 // 4 M-times taken
     }
+    reset: function() {
+	Z80._r.a = 0; Z80._r.b = 0; Z80._r.c = 0; Z80._r.d = 0;
+	Z80._r.e = 0; Z80._r.h = 0; Z80._r.l = 0; Z80._r.f = 0;
+	Z80._r.sp = 0;
+	Z80._r.pc = 0;      // Start execution at 0
+
+	Z80._clock.m = 0; Z80._clock.t = 0;
+    }
+while(true)
+{
+    var op = MMU.rb(Z80._r.pc++);              // Fetch instruction
+    Z80._map[op]();                            // Dispatch
+    Z80._r.pc &= 65535;                        // Mask PC to 16 bits
+    Z80._clock.m += Z80._r.m;                  // Add time to CPU clock
+    Z80._clock.t += Z80._r.t;
+}
+
+Z80._map = [
+    Z80._ops.NOP,
+    Z80._ops.LDBCnn,
+    Z80._ops.LDBCmA,
+    Z80._ops.INCBC,
+    Z80._ops.INCr_b,
+    ...
+];
