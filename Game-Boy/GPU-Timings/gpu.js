@@ -196,3 +196,65 @@ GPU = {
 	    }
 	}
     }
+    rb: function(addr)
+    {
+        switch(addr)
+	{
+	    // LCD Control
+	    case 0xFF40:
+	        return (GPU._switchbg  ? 0x01 : 0x00) |
+		       (GPU._bgmap     ? 0x08 : 0x00) |
+		       (GPU._bgtile    ? 0x10 : 0x00) |
+		       (GPU._switchlcd ? 0x80 : 0x00);
+
+	    // Scroll Y
+	    case 0xFF42:
+	        return GPU._scy;
+
+	    // Scroll X
+	    case 0xFF43:
+	        return GPU._scx;
+
+	    // Current scanline
+	    case 0xFF44:
+	        return GPU._line;
+	}
+    },
+
+    wb: function(addr, val)
+    {
+        switch(addr)
+	{
+	    // LCD Control
+	    case 0xFF40:
+	        GPU._switchbg  = (val & 0x01) ? 1 : 0;
+		GPU._bgmap     = (val & 0x08) ? 1 : 0;
+		GPU._bgtile    = (val & 0x10) ? 1 : 0;
+		GPU._switchlcd = (val & 0x80) ? 1 : 0;
+		break;
+
+	    // Scroll Y
+	    case 0xFF42:
+	        GPU._scy = val;
+		break;
+
+	    // Scroll X
+	    case 0xFF43:
+	        GPU._scx = val;
+		break;
+
+	    // Background palette
+	    case 0xFF47:
+	        for(var i = 0; i < 4; i++)
+		{
+		    switch((val >> (i * 2)) & 3)
+		    {
+		        case 0: GPU._pal[i] = [255,255,255,255]; break;
+			case 1: GPU._pal[i] = [192,192,192,255]; break;
+			case 2: GPU._pal[i] = [ 96, 96, 96,255]; break;
+			case 3: GPU._pal[i] = [  0,  0,  0,255]; break;
+		    }
+		}
+		break;
+	}
+    }
