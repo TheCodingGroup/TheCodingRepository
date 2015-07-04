@@ -298,3 +298,40 @@ MMU = {
     },
     ...
 };
+MMU = {
+    // MBC states
+    _mbc: [],
+
+    // Offset for second ROM bank
+    _romoffs: 0x4000,
+
+    // Offset for RAM bank
+    _ramoffs: 0x0000,
+
+    // Copy of the ROM's cartridge-type value
+    _carttype: 0,
+
+    reset: function()
+    {
+        ...
+
+	// In addition to previous reset code,
+	// initialise MBC internal data
+	MMU._mbc[0] = {};
+	MMU._mbc[1] = {
+	    rombank: 0,		// Selected ROM bank
+	    rambank: 0,		// Selected RAM bank
+	    ramon: 0,		// RAM enable switch
+	    mode: 0		// ROM/RAM expansion mode
+	};
+
+	MMU._romoffs = 0x4000;
+	MMU._ramoffs = 0x0000;
+    },
+
+    load: function(file)
+    {
+        ...
+	MMU._carttype = MMU._rom.charCodeAt(0x0147);
+    }
+}
