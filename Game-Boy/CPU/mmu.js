@@ -122,4 +122,16 @@ MMU.load = function(file)
 	    case 0x2000:
 	    case 0x3000:
 	        return MMU._rom.charCodeAt(addr);
+    wb: function(addr, val)
+    {
+        switch(addr & 0xF000)
+	{
+            // Only the VRAM case is shown:
+	    case 0x8000:
+	    case 0x9000:
+		GPU._vram[addr & 0x1FFF] = val;
+		GPU.updatetile(addr, val);
+		break;
+	}
+    }
  
