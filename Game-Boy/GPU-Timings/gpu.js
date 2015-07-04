@@ -32,3 +32,75 @@ GPU = {
 	}
     }
 }
+    _mode: 0,
+    _modeclock: 0,
+    _line: 0,
+
+    step: function()
+    {
+        GPU._modeclock += Z80._r.t;
+
+	switch(GPU._mode)
+	{
+	    // OAM read mode, scanline active
+	    case 2:
+	        if(GPU._modeclock >= 80)
+		{
+		    // Enter scanline mode 3
+		    GPU._modeclock = 0;
+		    GPU._mode = 3;
+		}
+		break;
+
+	    // VRAM read mode, scanline active
+	    // Treat end of mode 3 as end of scanline
+	    case 3:
+	        if(GPU._modeclock >= 172)
+		{
+		    // Enter hblank
+		    GPU._modeclock = 0;
+		    GPU._mode = 0;
+
+		    // Write a scanline to the framebuffer
+		    GPU.renderscan();
+		}
+		break;
+
+	    // Hblank
+	    // After the last hblank, push the screen data to canvas
+	    case 0:
+	        if(GPU._modeclock >= 204)
+		{
+		    GPU._modeclock = 0;
+		    GPU._line++;
+
+		    if(GPU._line == 143)
+		    {
+		        // Enter vblank
+			GPU._mode = 1;
+			GPU._canvas.putImageData(GPU._scrn, 0, 0);
+		    }
+		    else
+		    {
+		    	GPU._mode = 2;
+		    }
+		}
+		break;
+
+	    // Vblank (10 lines)
+	    case 1:
+	        if(GPU._modeclock >= 456)
+		{
+		    GPU._modeclock = 0;
+		    GPU._line++;
+
+		    if(GPU._line > 153)
+		    {
+		        // Restart scanning modes
+			GPU._mode = 2;
+			GPU._line = 0;
+		    }
+		}
+		break;
+	}
+    }
