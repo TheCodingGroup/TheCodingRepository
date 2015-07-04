@@ -258,3 +258,43 @@ MMU.load = function(file)
 		}
 	}
     }
+MMU = {
+    _ie: 0,
+    _if: 0,
+
+    rb: function(addr)
+    {
+	switch(addr & 0xF000)
+	{
+	    ...
+	    case 0xF000:
+	        switch(addr & 0x0F00)
+		{
+		    ...
+		    // Zero-page
+		    case 0xF00:
+		    	if(addr == 0xFFFF)
+			{
+			    return MMU._ie;
+			}
+		        else if(addr >= 0xFF80)
+			{
+			    return MMU._zram[addr & 0x7F];
+			}
+			else
+			{
+			    // I/O control handling
+			    switch(addr & 0x00F0)
+			    {
+			    	case 0x00:
+				    if(addr == 0xFF0F) return MMU._if;
+				    break;
+			    	...
+			    }
+			    return 0;
+			}
+		}
+	}
+    },
+    ...
+};
