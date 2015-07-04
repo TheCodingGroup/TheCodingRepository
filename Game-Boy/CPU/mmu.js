@@ -33,6 +33,11 @@ MMU = {
 		}
 
 		return MMU._rom[addr];
+MMU.load = function(file)
+{
+    var b = new BinFileReader(file);
+    MMU._rom = b.readString(b.getFileSize(), 0);
+};
 
 	    // ROM0
 	    case 0x1000:
@@ -107,3 +112,14 @@ MMU = {
         return MMU.rb(addr) + (MMU.rb(addr+1) << 8);
     }
 };
+MMU.load = function(file)
+{
+    var b = new BinFileReader(file);
+    MMU._rom = b.readString(b.getFileSize(), 0);
+};
+
+	    case 0x1000:
+	    case 0x2000:
+	    case 0x3000:
+	        return MMU._rom.charCodeAt(addr);
+ 
