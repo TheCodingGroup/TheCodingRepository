@@ -195,3 +195,32 @@ MMU.load = function(file)
 		break;
 	}
     } 
+
+    rb: function(addr)
+    {
+	switch(addr & 0xF000)
+	{
+	    ...
+	    case 0xF000:
+	        switch(addr & 0x0F00)
+		{
+		    ...
+		    // Zero-page
+		    case 0xF00:
+		        if(addr >= 0xFF80)
+			{
+			    return MMU._zram[addr & 0x7F];
+			}
+			else if(addr >= 0xFF40)
+			{
+			    // GPU (64 registers)
+			    return GPU.rb(addr);
+			}
+			else switch(addr & 0x3F)
+			{
+			    case 0x00: return KEY.rb();
+			    default: return 0;
+			}
+		}
+	}
+    }
