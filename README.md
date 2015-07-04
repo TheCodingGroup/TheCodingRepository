@@ -2,4 +2,4 @@
 Welcome to my javascript repository!
 
 This is full of JavaScript files and more cool stuff!
-Coming soon: My HTML repository!
+Coming soon: My Website Project
