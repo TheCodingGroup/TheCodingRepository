@@ -194,3 +194,80 @@ while(true)
     Z80._clock.m += Z80._r.m;
     Z80._clock.t += Z80._r.t;
 }
+Timer.js: Clock increment
+TIMER = {
+    _clock: {
+        main: 0,
+	sub:  0,
+	div:  0
+    },
+
+    _reg: {
+        div:  0,
+	tima: 0,
+	tma:  0,
+	tac:  0
+    },
+
+    inc: function()
+    {
+        // Increment by the last opcode's time
+        TIMER._clock.sub += Z80._r.m;
+
+	// No opcode takes longer than 4 M-times,
+	// so we need only check for overflow once
+	if(TIMER._clock.sub >= 4)
+	{
+	    TIMER._clock.main++;
+	    TIMER._clock.sub -= 4;
+
+	    // The DIV register increments at 1/16th
+	    // the rate, so keep a count of this
+	    TIMER._clock.div++;
+	    if(TIMER._clock.div == 16)
+	    {
+	        TIMER._reg.div = (TIMER._reg.div+1) & 255;
+		TIMER._clock.div = 0;
+	    }
+	}
+
+	// Check whether a step needs to be made in the timer
+	TIMER.check();
+    }
+};
+Z80.js: Dispatcher
+while(true)
+{
+    // Run execute for this instruction
+    var op = MMU.rc(Z80._r.pc++);
+    Z80._map[op]();
+    Z80._r.pc &= 65535;
+    Z80._clock.m += Z80._r.m;
+    Z80._clock.t += Z80._r.t;
+
+    // Update the timer
+    TIMER.inc();
+
+    Z80._r.m = 0;
+    Z80._r.t = 0;
+
+    // If IME is on, and some interrupts are enabled in IE, and
+    // an interrupt flag is set, handle the interrupt
+    if(Z80._r.ime && MMU._ie && MMU._if)
+    {
+        // Mask off ints that aren't enabled
+        var ifired = MMU._ie & MMU._if;
+
+	if(ifired & 0x01)
+	{
+	    MMU._if &= (255 - 0x01);
+	    Z80._ops.RST40();
+	}
+    }
+
+    Z80._clock.m += Z80._r.m;
+    Z80._clock.t += Z80._r.t;
+
+    // Update timer again, in case a RST occurred
+    TIMER.inc();
+}
