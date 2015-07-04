@@ -358,3 +358,88 @@ MMU = {
 	}
     }
 };
+    wb: function(addr, val)
+    {
+        switch(addr & 0xF000)
+	{
+	    // MBC1: External RAM switch
+	    case 0x0000:
+	    case 0x1000:
+	        switch(MMU._carttype)
+		{
+		    case 2:
+		    case 3:
+			MMU._mbc[1].ramon =
+			    ((val & 0x0F) == 0x0A) ? 1 : 0;
+			break;
+		}
+		break;
+
+	    // MBC1: ROM bank
+	    case 0x2000:
+	    case 0x3000:
+	        switch(MMU._carttype)
+		{
+		    case 1:
+		    case 2:
+		    case 3:
+		        // Set lower 5 bits of ROM bank (skipping #0)
+			val &= 0x1F;
+			if(!val) val = 1;
+			MMU._mbc[1].rombank =
+			    (MMU._mbc[1].rombank & 0x60) + val;
+
+			// Calculate ROM offset from bank
+			MMU._romoffs = MMU._mbc[1].rombank * 0x4000;
+			break;
+		}
+		break;
+
+	    // MBC1: RAM bank
+	    case 0x4000:
+	    case 0x5000:
+	        switch(MMU._carttype)
+		{
+		    case 1:
+		    case 2:
+		    case 3:
+		    	if(MMU._mbc[1].mode)
+			{
+			    // RAM mode: Set bank
+			    MMU._mbc[1].rambank = val & 3;
+			    MMU._ramoffs = MMU._mbc[1].rambank * 0x2000;
+			}
+			else
+			{
+			    // ROM mode: Set high bits of bank
+			    MMU._mbc[1].rombank =
+			    	(MMU._mbc[1].rombank & 0x1F) +
+				((val & 3) << 5);
+			
+			    MMU._romoffs = MMU._mbc[1].rombank * 0x4000;
+			}
+			break;
+		}
+		break;
+
+	    // MBC1: Mode switch
+	    case 0x6000:
+	    case 0x7000:
+	        switch(MMU._carttype)
+		{
+		    case 2:
+		    case 3:
+		    	MMU._mbc[1].mode = val & 1;
+			break;
+		}
+		break;
+
+	    ...
+
+	    // External RAM
+	    case 0xA000:
+	    case 0xB000:
+	        MMU._eram[MMU._ramoffs + (addr & 0x1FFF)] = val;
+		break;
+	}
+    }
