@@ -104,3 +104,43 @@ GPU = {
 		break;
 	}
     }
+
+    _tileset: [],
+
+    reset: function()
+    {
+        // In addition to previous reset code:
+	GPU._tileset = [];
+	for(var i = 0; i < 384; i++)
+	{
+	    GPU._tileset[i] = [];
+	    for(var j = 0; j < 8; j++)
+	    {
+	        GPU._tileset[i][j] = [0,0,0,0,0,0,0,0];
+	    }
+	}
+    },
+
+    // Takes a value written to VRAM, and updates the
+    // internal tile data set
+    updatetile: function(addr, val)
+    {
+        // Get the "base address" for this tile row
+	addr &= 0x1FFE;
+
+	// Work out which tile and row was updated
+	var tile = (addr >> 4) & 511;
+	var y = (addr >> 1) & 7;
+
+	var sx;
+	for(var x = 0; x < 8; x++)
+	{
+	    // Find bit index for this pixel
+	    sx = 1 << (7-x);
+
+	    // Update tile set
+	    GPU._tileset[tile][y][x] =
+	        ((GPU._vram[addr] & sx)   ? 1 : 0) +
+	        ((GPU._vram[addr+1] & sx) ? 2 : 0);
+	}
+    }
