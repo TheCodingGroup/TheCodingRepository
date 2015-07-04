@@ -129,3 +129,68 @@ Z80 = {
 	Z80._r.t = 4;
     }
 };
+Z80.js: Vblank interrupt handler
+Z80 = {
+    _ops: {
+	...
+
+        // Start vblank handler (0040h)
+        RST40: function()
+        {
+            // Disable further interrupts
+    	    Z80._r.ime = 0;
+    
+    	    // Save current SP on the stack
+    	    Z80._r.sp -= 2;
+    	    MMU.ww(Z80._r.sp, Z80._r.pc);
+    
+    	    // Jump to handler
+    	    Z80._r.pc = 0x0040;
+	    Z80._r.m = 3;
+    	    Z80._r.t = 12;
+        },
+        
+        // Return from interrupt (called by handler)
+        RETI: function()
+        {
+	    // Restore interrupts
+	    Z80._r.ime = 1;
+
+	    // Jump to the address on the stack
+	    Z80._r.pc = MMU.rw(Z80._r.sp);
+	    Z80._r.sp += 2;
+
+	    Z80._r.m = 3;
+	    Z80._r.t = 12;
+        }
+    }
+};
+
+while(true)
+{
+    // Run execute for this instruction
+    var op = MMU.rc(Z80._r.pc++);
+    Z80._map[op]();
+    Z80._r.pc &= 65535;
+    Z80._clock.m += Z80._r.m;
+    Z80._clock.t += Z80._r.t;
+    Z80._r.m = 0;
+    Z80._r.t = 0;
+
+    // If IME is on, and some interrupts are enabled in IE, and
+    // an interrupt flag is set, handle the interrupt
+    if(Z80._r.ime && MMU._ie && MMU._if)
+    {
+        // Mask off ints that aren't enabled
+        var ifired = MMU._ie & MMU._if;
+
+	if(ifired & 0x01)
+	{
+	    MMU._if &= (255 - 0x01);
+	    Z80._ops.RST40();
+	}
+    }
+
+    Z80._clock.m += Z80._r.m;
+    Z80._clock.t += Z80._r.t;
+}
