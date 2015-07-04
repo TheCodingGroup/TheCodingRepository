@@ -1,4 +1,4 @@
-KZ80 = {
+Z80 = {
     // Time clock: The Z80 holds two types of clock (m and t)
     _clock: {m:0, t:0},
 
@@ -101,3 +101,31 @@ while(true)
 
     GPU.step();
 }
+Z80 = {
+    _r: {
+        ime: 0,
+        ...
+    },
+
+    reset: function()
+    {
+        ...
+	Z80._r.ime = 1;
+    },
+
+    // Disable IME
+    DI: function()
+    {
+    	Z80._r.ime = 0;
+	Z80._r.m = 1;
+	Z80._r.t = 4;
+    },
+
+    // Enable IME
+    EI: function()
+    {
+    	Z80._r.ime = 1;
+	Z80._r.m = 1;
+	Z80._r.t = 4;
+    }
+};
