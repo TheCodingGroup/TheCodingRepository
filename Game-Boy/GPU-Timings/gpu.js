@@ -258,3 +258,49 @@ GPU = {
 		break;
 	}
     }
+    _oam: [],
+    _objdata: [],
+
+    reset: function()
+    {
+        // In addition to previous reset code:
+	for(var i=0, n=0; i < 40; i++, n+=4)
+	{
+	    GPU._oam[n + 0] = 0;
+	    GPU._oam[n + 1] = 0;
+	    GPU._oam[n + 2] = 0;
+	    GPU._oam[n + 3] = 0;
+	    GPU._objdata[i] = {
+	        'y': -16, 'x': -8,
+		'tile': 0, 'palette': 0,
+		'xflip': 0, 'yflip': 0, 'prio': 0, 'num': i
+	    };
+	}
+    },
+
+    buildobjdata: function(addr, val)
+    {
+	var obj = addr >> 2;
+	if(obj < 40)
+	{
+	    switch(addr & 3)
+	    {
+	        // Y-coordinate
+	        case 0: GPU._objdata[obj].y = val-16; break;
+		
+		// X-coordinate
+		case 1: GPU._objdata[obj].x = val-8; break;
+
+		// Data tile
+		case 2: GPU._objdata[obj].tile = val; break;
+
+		// Options
+		case 3:
+		    GPU._objdata[obj].palette = (val & 0x10) ? 1 : 0;
+		    GPU._objdata[obj].xflip   = (val & 0x20) ? 1 : 0;
+		    GPU._objdata[obj].yflip   = (val & 0x40) ? 1 : 0;
+		    GPU._objdata[obj].prio    = (val & 0x80) ? 1 : 0;
+		    break;
+	    }
+	}
+    }
