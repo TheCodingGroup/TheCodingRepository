@@ -134,4 +134,64 @@ MMU.load = function(file)
 		break;
 	}
     }
- 
+    rb: function(addr)
+    {
+	switch(addr & 0xF000)
+	{
+	    ...
+	    case 0xF000:
+	        switch(addr & 0x0F00)
+		{
+		    ...
+		    // Zero-page
+		    case 0xF00:
+		        if(addr >= 0xFF80)
+			{
+			    return MMU._zram[addr & 0x7F];
+			}
+			else
+			{
+			    // I/O control handling
+			    switch(addr & 0x00F0)
+			    {
+			        // GPU (64 registers)
+			        case 0x40: case 0x50: case 0x60: case 0x70:
+				    return GPU.rb(addr);
+			    }
+			    return 0;
+			}
+		}
+	}
+    },
+
+    wb: function(addr, val)
+    {
+	switch(addr & 0xF000)
+	{
+	    ...
+	    case 0xF000:
+	        switch(addr & 0x0F00)
+		{
+		    ...
+		    // Zero-page
+		    case 0xF00:
+		        if(addr >= 0xFF80)
+			{
+			    MMU._zram[addr & 0x7F] = val;
+			}
+			else
+			{
+			    // I/O
+			    switch(addr & 0x00F0)
+			    {
+			        // GPU
+			        case 0x40: case 0x50: case 0x60: case 0x70:
+				    GPU.wb(addr, val);
+				    break;
+			    }
+			}
+			break;
+		}
+		break;
+	}
+    } 
