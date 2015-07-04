@@ -224,3 +224,37 @@ MMU.load = function(file)
 		}
 	}
     }
+
+    rb: function(addr)
+    {
+	switch(addr & 0xF000)
+	{
+	    ...
+	    case 0xF000:
+	        switch(addr & 0x0F00)
+		{
+		    ...
+		    // OAM
+		    case 0xE00:
+		        return (addr < 0xFEA0) ? GPU._oam[addr & 0xFF] : 0;
+		}
+	}
+    },
+
+    wb: function(addr)
+    {
+	switch(addr & 0xF000)
+	{
+	    ...
+	    case 0xF000:
+	        switch(addr & 0x0F00)
+		{
+		    ...
+		    // OAM
+		    case 0xE00:
+		        if(addr < 0xFEA0) GPU._oam[addr & 0xFF] = val;
+			GPU.buildobjdata(addr - 0xFE00, val);
+			break;
+		}
+	}
+    }
