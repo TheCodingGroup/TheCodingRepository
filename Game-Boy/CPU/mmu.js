@@ -335,3 +335,26 @@ MMU = {
 	MMU._carttype = MMU._rom.charCodeAt(0x0147);
     }
 }
+MMU = {
+    rb: function(addr)
+    {
+    	switch(addr & 0xF000)
+	{
+	    ...
+
+	    // ROM (switched bank)
+	    case 0x4000:
+	    case 0x5000:
+	    case 0x6000:
+	    case 0x7000:
+	        return MMU._rom.charCodeAt(MMU._romoffs +
+		                           (addr & 0x3FFF));
+
+	    // External RAM
+	    case 0xA000:
+	    case 0xB000:
+	        return MMU._eram[MMU._ramoffs +
+		                 (addr & 0x1FFF)];
+	}
+    }
+};
