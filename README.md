@@ -1,5 +1,4 @@
 # TheCodingRepository
-Welcome to my javascript repository!
+Welcome to my repository! This is a repository full of stuff.
 
-This is full of JavaScript files and more cool stuff!
-Coming soon: My Website Project
+Status: Making "How To Make A PC" featuring IBM!
